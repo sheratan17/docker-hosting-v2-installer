@@ -23,49 +23,6 @@ if [ "$pass_nginx" != "$pass_nginx2" ]; then
 	exit 1
 fi
 
-echo
-function tanya_powerdns() {
-    while true; do
-    read -p "Apakah ingin install PowerDNS di server ini? (y/n): " powerdns_option
-    case $powerdns_option in
-    [Yy]* )
-      echo "PowerDNS akan dinstall"
-      echo
-      echo "Input lengkap. Memulai proses..."
-      sleep 5
-      echo
-      echo "Proses dimulai"
-      sleep 3
-      install_powerdns
-      break
-      ;;
-    [Nn]* )
-      echo "Anda memilih 'Tidak Install PowerDNS'."
-      echo
-      echo "Input lengkap. Memulai proses..."
-      sleep 5
-      echo
-      echo "Proses dimulai"
-      sleep 3
-      break
-      ;;
-    * )
-      echo "Tolong masukkan y atau n."
-      ;;
-    esac
-  done
-}
-function install_powerdns(){
-  echo "Install PowerDNS..."
-  curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo
-  yum install pdns pdns-backend-mysql mariadb-server -y
-  systemctl enable mariadb
-  systemctl enable pdns
-  systemctl restart mariadb
-}
-
-tanya_powerdns
-
 # install library
 yum update -y
 yum install quota wget nano curl vim lsof git sshpass epel-release zip policycoreutils-python-utils python3-pip httpd-tools -y
@@ -198,7 +155,7 @@ echo "Selesai. Berikutnya download script lalu koneksikan server ini dengan ngin
 sleep 3
 
 if [ -d "/opt/docker-hosting-v2" ]; then
-  echo "Direktori /opt/docker-hosting-v2 ditemukan. Skip clone."
+	echo "Direktori /opt/docker-hosting-v2 ditemukan. Skip clone."
 else
   # deploy file docker-hosting
   echo "Memulai deploy script docker-hosting-v2..."
@@ -235,48 +192,50 @@ echo "Membuat nginx reverse proxy..."
 
 ssh-keyscan -t rsa $ip_nginx >> /root/.ssh/known_hosts
 
-sshpass -p "$pass_nginx" ssh-copy-id root@$ip_nginx
-ssh root@$ip_nginx "yum update -y && yum install epel-release -y && exit"
-ssh root@$ip_nginx "yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld -y && exit"
-
-# Sanity Check jail dan sshd.local apabila nginx dan docker menggunakan server yang sama
-
-content_to_insert="# 3x Gagal, ban 1 jam
-[sshd]
-enabled = true
-bantime = 1h
-maxretry = 3"
-
-copy_command="touch /etc/fail2ban/jail.d/sshd.local && cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local && mv /etc/fail2ban/jail.d/00-firewalld.conf /etc/fail2ban/jail.d/00-firewalld.local && exit"
-insert_command="echo \"$content_to_insert\" | sudo tee -a \"/etc/fail2ban/jail.d/sshd.local\" > /dev/null"
-
-if ssh "root@$ip_nginx" "grep -q '# 3x Gagal, ban 1 jam' /etc/fail2ban/jail.d/sshd.local"; then
-  echo "fail2ban sshd.local terdeteksi sudah ada"
-else
-  echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
-  ssh "root@$ip_nginx" "$copy_command"
-  ssh "root@$ip_nginx" "$insert_command"
+if [ "$nginx_option" == y ]; then
+	sshpass -p "$pass_nginx" ssh-copy-id root@$ip_nginx
+	ssh root@$ip_nginx "yum update -y && yum install epel-release -y && exit"
+	ssh root@$ip_nginx "yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld -y && exit"
+	
+	# Sanity Check jail dan sshd.local apabila nginx dan docker menggunakan server yang sama
+	
+	content_to_insert="# 3x Gagal, ban 1 jam
+	[sshd]
+	enabled = true
+	bantime = 1h
+	maxretry = 3"
+	
+	copy_command="touch /etc/fail2ban/jail.d/sshd.local && cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local && mv /etc/fail2ban/jail.d/00-firewalld.conf /etc/fail2ban/jail.d/00-firewalld.local && exit"
+	insert_command="echo \"$content_to_insert\" | sudo tee -a \"/etc/fail2ban/jail.d/sshd.local\" > /dev/null"
+	
+	if ssh "root@$ip_nginx" "grep -q '# 3x Gagal, ban 1 jam' /etc/fail2ban/jail.d/sshd.local"; then
+	  echo "fail2ban sshd.local terdeteksi sudah ada"
+	else
+	  echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
+	  ssh "root@$ip_nginx" "$copy_command"
+	  ssh "root@$ip_nginx" "$insert_command"
+	fi
+	
+	ssh root@$ip_nginx "systemctl enable fail2ban && systemctl restart fail2ban"
+	
+	# download script dan update config di nginx reverse
+	# tambahkan template nginx dari tiap CMS disini
+	sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/web-template.conf.inc
+	sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/wp-template.conf.inc
+	scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
+	#ssh root@$ip_nginx 'sed -i "/http {/a \    server_tokens off;" /etc/nginx/nginx.conf && exit'
+	
+	# ubah bash script agar menggunakan IP nginx
+	sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
+	sed -i "s/_ipprivate_node_/$ipprivate_node/g" /opt/docker-hosting-v2/script/config.conf
+	
+	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=http --permanent"
+	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=https --permanent"
+	ssh root@$ip_nginx "firewall-cmd --reload && exit"
+	ssh root@$ip_nginx "systemctl enable nginx && exit"
+	echo "Nginx selesai."
+	echo
 fi
-
-ssh root@$ip_nginx "systemctl enable fail2ban && systemctl restart fail2ban"
-
-# download script dan update config di nginx reverse
-# tambahkan template nginx dari tiap CMS disini
-sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/web-template.conf.inc
-sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/wp-template.conf.inc
-scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
-#ssh root@$ip_nginx 'sed -i "/http {/a \    server_tokens off;" /etc/nginx/nginx.conf && exit'
-
-# ubah bash script agar menggunakan IP nginx
-sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
-sed -i "s/_ipprivate_node_/$ipprivate_node/g" /opt/docker-hosting-v2/script/config.conf
-
-ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=http --permanent"
-ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=https --permanent"
-ssh root@$ip_nginx "firewall-cmd --reload && exit"
-ssh root@$ip_nginx "systemctl enable nginx && exit"
-echo "Nginx selesai."
-echo
 
 echo "Menambahkan cronjob backup, checkquota dan sinkron jam..."
 chmod +x /opt/docker-hosting-v2/script/quotacheck.sh
@@ -309,14 +268,16 @@ GRANT ALL PRIVILEGES ON pdns.* TO 'pdnsadmin'@'localhost' IDENTIFIED BY '$pdns_p
 FLUSH PRIVILEGES;
 "
 
-function config_powerdns(){
-  echo "$pdns_config_line" >> "/etc/pdns/pdns.conf"
-  chown pdns:pdns /etc/pdns/pdns.conf
-  mysql -u root -e "$pdns_sql"
-}
-
 if [ "$powerdns_option" == y ]; then
-      config_powerdns
+	echo "Install PowerDNS..."
+	curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo
+	yum install pdns pdns-backend-mysql mariadb-server -y
+	systemctl enable mariadb
+	systemctl enable pdns
+	systemctl restart mariadb
+	echo "$pdns_config_line" >> "/etc/pdns/pdns.conf"
+	chown pdns:pdns /etc/pdns/pdns.conf
+	mysql -u root -e "$pdns_sql"
 fi
 
 echo "Download image docker..."
