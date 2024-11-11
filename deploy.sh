@@ -315,12 +315,9 @@ function config_powerdns(){
   mysql -u root -e "$pdns_sql"
 }
 
-case $powerdns_option in
-    [Yy]* )
+if [ "$powerdns_option" == y ]; then
       config_powerdns
-      break
-      ;;
-esac
+fi
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.9-jammy
