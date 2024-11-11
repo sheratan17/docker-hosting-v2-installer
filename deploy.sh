@@ -61,6 +61,7 @@ function install_powerdns(){
   yum install pdns pdns-backend-mysql mariadb-server -y
   systemctl enable mariadb
   systemctl enable pdns
+  systemctl restart mariadb
 }
 
 tanya_powerdns
