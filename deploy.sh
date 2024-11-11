@@ -281,6 +281,7 @@ if [ "$powerdns_option" == y ]; then
 	echo "$pdns_config_line" >> "/etc/pdns/pdns.conf"
 	chown pdns:pdns /etc/pdns/pdns.conf
 	mysql -u root -e "$pdns_sql"
+	mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql
 fi
 
 echo "Download image docker..."
