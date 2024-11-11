@@ -10,6 +10,8 @@ echo "- Semua server bukan server baru/kosong"
 echo "- Server belum lengkap"
 echo "- IP private belum bisa terhubung"
 echo
+echo -p "Masukkan alamat email admin (digunakan untuk aktivasi SSL): " email_admin
+echo
 read -p "Masukkan IP PRIVATE server Node Docker: " ipprivate_node
 echo
 read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
@@ -188,6 +190,9 @@ firewall-cmd --reload
 # Tambahkan docker compose dari tiap CMS disini
 sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/wp-template/docker-compose.yml
 sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/web-template/docker-compose.yml
+
+# Masukkan email ke config.conf
+echo "email=$email_admin" >> /opt/docker-hosting-v2/script/config.conf
 
 # Membuat nginx reverse proxy
 echo
