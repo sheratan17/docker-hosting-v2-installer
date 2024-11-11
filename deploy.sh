@@ -10,23 +10,45 @@ echo "- Semua server bukan server baru/kosong"
 echo "- Server belum lengkap"
 echo "- IP private belum bisa terhubung"
 echo
-echo -p "Masukkan alamat email admin (digunakan untuk aktivasi SSL): " email_admin
-echo
 read -p "Masukkan IP PRIVATE server Node Docker: " ipprivate_node
-echo
-read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
-read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
-echo
-read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
-echo
-read -p "Apakah anda ingin install nginx di server ini? (y/n): " nginx_option
-read -p "Apakah anda ingin install PowerDNS di server ini? (y/n): " powerdns_option
+read -p "Apakah anda ingin install nginx? nginx dapat di install di server ini atau server lain (y/n): " nginx_option
 echo
 
+if [ "$nginx_option" == y ]; then
+	read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
+	read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
+	echo
+	read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
+	echo
+fi
+
 if [ "$pass_nginx" != "$pass_nginx2" ]; then
-	echo "Password tidak cocok. Silakan coba lagi."
+	echo
+	echo "Password nginx tidak cocok. Silakan coba lagi."
 	exit 1
 fi
+
+echo
+read -p "Apakah anda ingin install PowerDNS? PowerDNS dapat di install di server ini atau server lain (y/n): " powerdns_option
+echo
+
+if [ "$powerdns_option" == y ]; then
+	read -p "Masukkan IP PUBLIC server PowerDNS: " ip_powerdns
+	read -sp "Masukkan password root server PowerDNS: " pass_powerdns
+	echo
+	read -sp "Masukkan password root server PowerDNS (2x): " pass_powerdns2
+	echo
+fi
+
+if [ "$pass_powerdns" != "$pass_powerdns2" ]; then
+	echo
+	echo "Password PowerDNS tidak cocok. Silakan coba lagi."
+	exit 1
+fi
+
+echo
+echo "Input selesai, mulai proses install..."
+sleep 3
 
 # install library
 yum update -y
@@ -74,6 +96,7 @@ if [[ $os_version == *"AlmaLinux 9"* ]]; then
         wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/9/x86_64/zabbix-release-latest.el9.noarch.rpm
         rpm -Uvh /root/zabbix-release-latest.el9.noarch.rpm
         dnf clean all
+		sed -i '/name=Extra Packages for Enterprise Linux \$releasever - \$basearch/a excludepkgs=zabbix*' /etc/yum.repos.d/epel.repo
         dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
     else
         echo "Baris '$exclude_line' sudah ada di $repo_file. Tidak perlu melakukan apa-apa."
@@ -191,9 +214,6 @@ firewall-cmd --reload
 sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/wp-template/docker-compose.yml
 sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/web-template/docker-compose.yml
 
-# Masukkan email ke config.conf
-echo "email=$email_admin" >> /opt/docker-hosting-v2/script/config.conf
-
 # Membuat nginx reverse proxy
 echo
 echo "Membuat nginx reverse proxy..."
@@ -254,7 +274,7 @@ timedatectl set-ntp on
 
 mkdir /backup
 
-pdns_password=$(openssl rand -base64 12)
+pdns_password=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c 12)
 pdns_api=$(openssl rand -base64 14)
 
 pdns_config_line="
@@ -275,18 +295,17 @@ CREATE DATABASE pdns;
 GRANT ALL PRIVILEGES ON pdns.* TO 'pdnsadmin'@'localhost' IDENTIFIED BY '$pdns_password';
 FLUSH PRIVILEGES;
 "
+ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
 
 if [ "$powerdns_option" == y ]; then
 	echo "Install PowerDNS..."
-	curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo
-	yum install pdns pdns-backend-mysql mariadb-server -y
-	systemctl enable mariadb
-	systemctl enable pdns
-	systemctl restart mariadb
-	echo "$pdns_config_line" >> "/etc/pdns/pdns.conf"
-	chown pdns:pdns /etc/pdns/pdns.conf
+	ssh "root@$ip_powerdns" "curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo && exit"
+	ssh "root@$ip_powerdns" "yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb && exit"
+	ssh "root@$ip_powerdns" "echo '$pdns_config_line' >> '/etc/pdns/pdns.conf' &&  chown pdns:pdns /etc/pdns/pdns.conf && exit"
+	ssh "root@$ip_powerdns" <<EOF
 	mysql -u root -e "$pdns_sql"
-	mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql
+EOF
+	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
 fi
 
 echo "Download image docker..."
