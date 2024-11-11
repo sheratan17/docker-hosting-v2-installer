@@ -19,7 +19,7 @@ read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
 echo
 
 if [ "$pass_nginx" != "$pass_nginx2" ]; then
-    echo "Password tidak cocok. Silakan coba lagi."
+	echo "Password tidak cocok. Silakan coba lagi."
 	exit 1
 fi
 
@@ -32,15 +32,15 @@ pip install fastapi uvicorn
 grep -q "usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1" /etc/fstab
 
 if [ $? -eq 0 ]; then
-  echo "/etc/fstab terdeteksi sudah ada quota."
-  else
-  line=$(grep "^UUID=.* /home " /etc/fstab)
-  new_line=$(echo "$line" | sed 's/defaults/&,usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1/')
-  sed -i "s|$line|$new_line|" /etc/fstab
-  mount -o remount /home
-  quotacheck -cugm /home
-  quotaon -v /home
-  quotaon -ap
+	echo "/etc/fstab terdeteksi sudah ada quota."
+	else
+	line=$(grep "^UUID=.* /home " /etc/fstab)
+	new_line=$(echo "$line" | sed 's/defaults/&,usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1/')
+	sed -i "s|$line|$new_line|" /etc/fstab
+	mount -o remount /home
+	quotacheck -cugm /home
+	quotaon -v /home
+	quotaon -ap
 fi
 
 # Setup firewall
@@ -157,14 +157,14 @@ sleep 3
 if [ -d "/opt/docker-hosting-v2" ]; then
 	echo "Direktori /opt/docker-hosting-v2 ditemukan. Skip clone."
 else
-  # deploy file docker-hosting
-  echo "Memulai deploy script docker-hosting-v2..."
-  echo "Download script..."
-  echo "Menunggu input key ke github"
-  #sleep 30
-  ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
-  cd /opt
-  git clone git@github.com:sheratan17/docker-hosting-v2.git
+	# deploy file docker-hosting
+	echo "Memulai deploy script docker-hosting-v2..."
+	echo "Download script..."
+	echo "Menunggu input key ke github"
+	#sleep 30
+	ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
+	cd /opt
+	git clone git@github.com:sheratan17/docker-hosting-v2.git
 fi
 
 mkdir /etc/zabbix/scripts
@@ -209,11 +209,11 @@ if [ "$nginx_option" == y ]; then
 	insert_command="echo \"$content_to_insert\" | sudo tee -a \"/etc/fail2ban/jail.d/sshd.local\" > /dev/null"
 	
 	if ssh "root@$ip_nginx" "grep -q '# 3x Gagal, ban 1 jam' /etc/fail2ban/jail.d/sshd.local"; then
-	  echo "fail2ban sshd.local terdeteksi sudah ada"
+		echo "fail2ban sshd.local terdeteksi sudah ada"
 	else
-	  echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
-	  ssh "root@$ip_nginx" "$copy_command"
-	  ssh "root@$ip_nginx" "$insert_command"
+		echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
+		ssh "root@$ip_nginx" "$copy_command"
+		ssh "root@$ip_nginx" "$insert_command"
 	fi
 	
 	ssh root@$ip_nginx "systemctl enable fail2ban && systemctl restart fail2ban"
