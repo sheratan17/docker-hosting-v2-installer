@@ -46,6 +46,7 @@ if [ "$pass_powerdns" != "$pass_powerdns2" ]; then
 	exit 1
 fi
 
+echo
 read -p "Masukkan alamat email admin (Untuk aktivasi SSL): " email_admin
 echo
 echo "Input selesai, mulai proses install..."
@@ -206,7 +207,7 @@ echo "UserParameter=quota.usage,/etc/zabbix/scripts/user-quota.sh" >> "/etc/zabb
 sed -i "s/Hostname=Zabbix server/Hostname=$hostname/" /etc/zabbix/zabbix_agent2.conf
 
 # Masukkan email admin
-echo "email=$email_admin" >> /opt/docker-hosting-v2/script/config.conf
+sed -i "s/^email=_email/email=$email_admin/" /opt/docker-hosting-v2/script/config.conf
 
 # Setting port zabbix-agent di node docker
 firewall-cmd --zone=public --add-port=10050/tcp --permanent
