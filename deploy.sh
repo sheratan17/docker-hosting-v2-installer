@@ -46,6 +46,7 @@ if [ "$pass_powerdns" != "$pass_powerdns2" ]; then
 	exit 1
 fi
 
+read -p "Masukkan alamat email admin (Untuk aktivasi SSL): " email_admin
 echo
 echo "Input selesai, mulai proses install..."
 sleep 3
@@ -89,25 +90,25 @@ os_version=$(cat /etc/os-release)
 
 # Cek versi AlmaLinux 8 atau 9
 if [[ $os_version == *"AlmaLinux 9"* ]]; then
-	echo "AlmaLinux 9 terdeteksi."
-	# Sanity check, periksa apakah baris sudah ada di file repositori EPEL
-	if ! grep -q "$exclude_line" "$repo_file"; then
-		echo "Baris '$exclude_line' tidak ditemukan di $repo_file."
-		wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/9/x86_64/zabbix-release-latest.el9.noarch.rpm
-		rpm -Uvh /root/zabbix-release-latest.el9.noarch.rpm
-		dnf clean all
+    echo "AlmaLinux 9 terdeteksi."
+    # Sanity check, periksa apakah baris sudah ada di file repositori EPEL
+    if ! grep -q "$exclude_line" "$repo_file"; then
+        echo "Baris '$exclude_line' tidak ditemukan di $repo_file."
+        wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/9/x86_64/zabbix-release-latest.el9.noarch.rpm
+        rpm -Uvh /root/zabbix-release-latest.el9.noarch.rpm
+        dnf clean all
 		sed -i '/name=Extra Packages for Enterprise Linux \$releasever - \$basearch/a excludepkgs=zabbix*' /etc/yum.repos.d/epel.repo
-		dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
+        dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
     else
         echo "Baris '$exclude_line' sudah ada di $repo_file. Tidak perlu melakukan apa-apa."
     fi
 
 elif [[ $os_version == *"AlmaLinux 8"* ]]; then
-	echo "AlmaLinux 8 terdeteksi."
-	wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/8/x86_64/zabbix-release-latest.el8.noarch.rpm
-	rpm -Uvh /root/zabbix-release-latest.el8.noarch.rpm
-	dnf clean all
-	dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
+    echo "AlmaLinux 8 terdeteksi."
+    wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/8/x86_64/zabbix-release-latest.el8.noarch.rpm
+    rpm -Uvh /root/zabbix-release-latest.el8.noarch.rpm
+    dnf clean all
+    dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
 fi
 
 systemctl enable zabbix-agent2
@@ -203,6 +204,9 @@ chmod +x /etc/zabbix/scripts/user-quota.sh
 hostname=$(hostname)
 echo "UserParameter=quota.usage,/etc/zabbix/scripts/user-quota.sh" >> "/etc/zabbix/zabbix_agent2.conf"
 sed -i "s/Hostname=Zabbix server/Hostname=$hostname/" /etc/zabbix/zabbix_agent2.conf
+
+# Masukkan email admin
+echo "email=$email_admin" >> /opt/docker-hosting-v2/script/config.conf
 
 # Setting port zabbix-agent di node docker
 firewall-cmd --zone=public --add-port=10050/tcp --permanent
