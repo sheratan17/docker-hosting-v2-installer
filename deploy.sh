@@ -89,25 +89,25 @@ os_version=$(cat /etc/os-release)
 
 # Cek versi AlmaLinux 8 atau 9
 if [[ $os_version == *"AlmaLinux 9"* ]]; then
-    echo "AlmaLinux 9 terdeteksi."
-    # Sanity check, periksa apakah baris sudah ada di file repositori EPEL
-    if ! grep -q "$exclude_line" "$repo_file"; then
-        echo "Baris '$exclude_line' tidak ditemukan di $repo_file."
-        wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/9/x86_64/zabbix-release-latest.el9.noarch.rpm
-        rpm -Uvh /root/zabbix-release-latest.el9.noarch.rpm
-        dnf clean all
+	echo "AlmaLinux 9 terdeteksi."
+	# Sanity check, periksa apakah baris sudah ada di file repositori EPEL
+	if ! grep -q "$exclude_line" "$repo_file"; then
+		echo "Baris '$exclude_line' tidak ditemukan di $repo_file."
+		wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/9/x86_64/zabbix-release-latest.el9.noarch.rpm
+		rpm -Uvh /root/zabbix-release-latest.el9.noarch.rpm
+		dnf clean all
 		sed -i '/name=Extra Packages for Enterprise Linux \$releasever - \$basearch/a excludepkgs=zabbix*' /etc/yum.repos.d/epel.repo
-        dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
+		dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
     else
         echo "Baris '$exclude_line' sudah ada di $repo_file. Tidak perlu melakukan apa-apa."
     fi
 
 elif [[ $os_version == *"AlmaLinux 8"* ]]; then
-    echo "AlmaLinux 8 terdeteksi."
-    wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/8/x86_64/zabbix-release-latest.el8.noarch.rpm
-    rpm -Uvh /root/zabbix-release-latest.el8.noarch.rpm
-    dnf clean all
-    dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
+	echo "AlmaLinux 8 terdeteksi."
+	wget -P /root https://repo.zabbix.com/zabbix/7.0/alma/8/x86_64/zabbix-release-latest.el8.noarch.rpm
+	rpm -Uvh /root/zabbix-release-latest.el8.noarch.rpm
+	dnf clean all
+	dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
 fi
 
 systemctl enable zabbix-agent2
