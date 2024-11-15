@@ -247,10 +247,10 @@ else
 	# Masukkan email admin
 fi
 
-if grep -q "_email" /opt/docker-hosting-v2/script/config.conf; then
-	echo "Email di config sudah ada"
-else
+if grep -q "_email" "/opt/docker-hosting-v2/script/config.conf"; then
 	sed -i "s/^email=_email/email=$email_admin/" /opt/docker-hosting-v2/script/config.conf
+else
+	echo "Email di config sudah ada"
 fi
 
 # Setting port zabbix-agent di node docker
