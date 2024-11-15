@@ -124,7 +124,11 @@ systemctl enable zabbix-agent2
 # Install Fail2Ban
 dnf install fail2ban fail2ban-firewalld -y
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
-mv /etc/fail2ban/jail.d/00-firewalld.conf /etc/fail2ban/jail.d/00-firewalld.local
+if [ -f "/etc/fail2ban/jail.d/00-firewalld.local" ]; then
+	echo "firewalld.local sudah ada"
+else
+	mv /etc/fail2ban/jail.d/00-firewalld.conf /etc/fail2ban/jail.d/00-firewalld.local
+fi
 
 # sanity check fail2ban
 if grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local"; then
@@ -309,12 +313,23 @@ echo "Menambahkan cronjob backup, checkquota dan sinkron jam..."
 chmod +x /opt/docker-hosting-v2/script/quotacheck.sh
 chmod +x /opt/docker-hosting-v2/script/backup.sh
 chmod +x /opt/docker-hosting-v2/script/billing.sh
+cari_crontab="quotacheck.sh"
+if crontab -l 2>/dev/null | grep -q "cari_crontab"; then
+	echo "crontab ok"
+else
 (crontab -l ; echo "*/5 * * * * /opt/docker-hosting-v2/script/quotacheck.sh > /var/log/quotacheck.txt 2>&1") | crontab -
 (crontab -l ; echo "*/5 * * * * /opt/docker-hosting-v2/script/billing.sh --d=* > /var/log/billingcheck.txt 2>&1") | crontab -
+echo "crontab ditambahkan"
+fi
+
 timedatectl set-timezone Asia/Jakarta
 timedatectl set-ntp on
 
+if [ -d "/backup" ]; then
+	echo "Direktori /backup sudah ada"
+else
 mkdir /backup
+fi
 
 pdns_password=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c 12)
 pdns_api=$(openssl rand -base64 14)
@@ -337,9 +352,8 @@ CREATE DATABASE pdns;
 GRANT ALL PRIVILEGES ON pdns.* TO 'pdnsadmin'@'localhost' IDENTIFIED BY '$pdns_password';
 FLUSH PRIVILEGES;
 "
-ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
-
 if [ "$powerdns_option" == y ]; then
+	ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
 	echo "Install PowerDNS..."
 	ssh "root@$ip_powerdns" "curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo && exit"
 	ssh "root@$ip_powerdns" "yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb && exit"
