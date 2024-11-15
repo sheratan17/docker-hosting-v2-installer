@@ -194,7 +194,7 @@ else
 	#sleep 30
 	ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
 	cd /opt
-	git clone git@github.com:sheratan17/docker-hosting-v2.git
+	git clone -b api-modular git@github.com:sheratan17/docker-hosting-v2.git
 fi
 
 mkdir /etc/zabbix/scripts
