@@ -58,19 +58,26 @@ yum install quota wget nano curl vim lsof git sshpass epel-release zip policycor
 pip install fastapi uvicorn
 
 # Aktifkan quota di /home
-grep -q "usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1" /etc/fstab
+#grep -q "usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1" /etc/fstab
 
-if [ $? -eq 0 ]; then
-	echo "/etc/fstab terdeteksi sudah ada quota."
-	else
-	line=$(grep "^UUID=.* /home " /etc/fstab)
-	new_line=$(echo "$line" | sed 's/defaults/&,usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1/')
-	sed -i "s|$line|$new_line|" /etc/fstab
-	mount -o remount /home
-	quotacheck -cugm /home
-	quotaon -v /home
-	quotaon -ap
-fi
+partition=$(df /home | awk 'NR==2 {print $1}')
+
+umount /home
+tune2fs -O quota $partition
+mount -a
+quotaon -va
+
+#if [ $? -eq 0 ]; then
+#	echo "/etc/fstab terdeteksi sudah ada quota."
+#	else
+#	line=$(grep "^UUID=.* /home " /etc/fstab)
+#	new_line=$(echo "$line" | sed 's/defaults/&,usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1/')
+#	sed -i "s|$line|$new_line|" /etc/fstab
+#	mount -o remount /home
+#	quotacheck -cugm /home
+#	quotaon -v /home
+#	quotaon -ap
+#fi
 
 # Setup firewall
 sed -i "s/AllowZoneDrifting=yes/AllowZoneDrifting=no/g" /etc/firewalld/firewalld.conf
