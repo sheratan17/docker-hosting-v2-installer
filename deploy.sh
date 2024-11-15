@@ -245,6 +245,11 @@ else
 	echo "UserParameter=quota.usage,/etc/zabbix/scripts/user-quota.sh" >> "/etc/zabbix/zabbix_agent2.conf"
 	sed -i "s/Hostname=Zabbix server/Hostname=$hostname/" /etc/zabbix/zabbix_agent2.conf
 	# Masukkan email admin
+fi
+
+if grep -q "_email" /opt/docker-hosting-v2/script/config.conf; then
+	echo "Email di config sudah ada"
+else
 	sed -i "s/^email=_email/email=$email_admin/" /opt/docker-hosting-v2/script/config.conf
 fi
 
