@@ -125,7 +125,13 @@ systemctl enable zabbix-agent2
 dnf install fail2ban fail2ban-firewalld -y
 cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local
 mv /etc/fail2ban/jail.d/00-firewalld.conf /etc/fail2ban/jail.d/00-firewalld.local
-touch /etc/fail2ban/jail.d/sshd.local
+
+# sanity check fail2ban
+if grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local"; then
+	echo "fail2ban sshd.local terdeteksi sudah ada"
+else
+	echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
+	touch /etc/fail2ban/jail.d/sshd.local
 cat << EOF >> /etc/fail2ban/jail.d/sshd.local
 # 3x Gagal, ban 1 jam 
 [sshd]
@@ -133,10 +139,16 @@ enabled = true
 bantime = 1h
 maxretry = 3
 EOF
+fi
+
 systemctl enable fail2ban
 systemctl restart fail2ban
 
-# Install Fast2API systemd
+# Install Fast2API systemd, sanity check sudah ada atau belum
+if [ -f "/etc/systemd/system/uvicorn.service" ]; then
+	echo "File systemd uvicorn sudah ada"
+else
+echo "Systemd uvicorn tidak terdeteksi. Memulai menambahkan..."
 touch /etc/systemd/system/uvicorn.service
 cat << EOF >> /etc/systemd/system/uvicorn.service
 [Unit]
@@ -152,10 +164,16 @@ Restart=always
 [Install]
 WantedBy=multi-user.target
 EOF
+fi
+
 sudo systemctl daemon-reload
 sudo systemctl enable uvicorn
 
-# Menambahkan service docker agar dipantau oleh SELinux
+# Menambahkan service docker agar dipantau oleh SELinux, sanity check sudah ada atau belum
+if grep -q "w /usr/bin/dockerd -k docker" "/etc/audit/rules.d/audit.rules"; then
+	echo "Rules audit terdeteksi sudah ada"
+else
+	echo "audit.rules tidak terdeteksi. Memulai menambahkan..."
 cat << EOF >> /etc/audit/rules.d/audit.rules
 -w /usr/bin/dockerd -k docker
 -a exit,always -F path=/run/containerd -F perm=war -k docker
@@ -170,9 +188,14 @@ cat << EOF >> /etc/audit/rules.d/audit.rules
 -w /usr/bin/runc -k docker
 -w /etc/docker/daemon.json -k docker
 EOF
+fi
 service auditd restart
 
-# Edit config docker agar lebih aman
+# Edit config docker agar lebih aman, sanity check sudah ada atau belum
+if grep -q "live-restore" "/etc/docker/daemon.json"; then
+	echo "Custom config docker sudah ada"
+else
+	echo "Custom config docker tidak terdeteksi. Memulai menambahkan..."
 cat << EOF > /etc/docker/daemon.json
 {
  "live-restore": true,
@@ -181,6 +204,7 @@ cat << EOF > /etc/docker/daemon.json
  "selinux-enabled": true
 }
 EOF
+fi
 
 # buat ssh-keygen
 #ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
@@ -191,6 +215,7 @@ sleep 3
 echo "Selesai. Berikutnya download script lalu koneksikan server ini dengan nginx reverse proxy..."
 sleep 3
 
+# Clone github, sanity check sudah ada atau belum
 if [ -d "/opt/docker-hosting-v2" ]; then
 	echo "Direktori /opt/docker-hosting-v2 ditemukan. Skip clone."
 else
@@ -204,17 +229,20 @@ else
 	git clone git@github.com:sheratan17/docker-hosting-v2.git
 fi
 
-mkdir /etc/zabbix/scripts
-mv /opt/docker-hosting-v2/script/user-quota.sh /etc/zabbix/scripts
-chmod +x /etc/zabbix/scripts/user-quota.sh
-
-# Edit file config zabbix-agent2
-hostname=$(hostname)
-echo "UserParameter=quota.usage,/etc/zabbix/scripts/user-quota.sh" >> "/etc/zabbix/zabbix_agent2.conf"
-sed -i "s/Hostname=Zabbix server/Hostname=$hostname/" /etc/zabbix/zabbix_agent2.conf
-
-# Masukkan email admin
-sed -i "s/^email=_email/email=$email_admin/" /opt/docker-hosting-v2/script/config.conf
+# Buat config zabbix, sanity check sudah ada atau belum
+if [ -d "/etc/zabbix/scripts" ]; then
+	echo "Direktori /etc/zabbix/scripts sudah ada"
+else
+	mkdir /etc/zabbix/scripts
+	mv /opt/docker-hosting-v2/script/user-quota.sh /etc/zabbix/scripts
+	chmod +x /etc/zabbix/scripts/user-quota.sh
+	# Edit file config zabbix-agent2
+	hostname=$(hostname)
+	echo "UserParameter=quota.usage,/etc/zabbix/scripts/user-quota.sh" >> "/etc/zabbix/zabbix_agent2.conf"
+	sed -i "s/Hostname=Zabbix server/Hostname=$hostname/" /etc/zabbix/zabbix_agent2.conf
+	# Masukkan email admin
+	sed -i "s/^email=_email/email=$email_admin/" /opt/docker-hosting-v2/script/config.conf
+fi
 
 # Setting port zabbix-agent di node docker
 firewall-cmd --zone=public --add-port=10050/tcp --permanent
