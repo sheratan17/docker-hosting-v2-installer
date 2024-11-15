@@ -138,7 +138,7 @@ After=network.target
 
 [Service]
 User=root
-WorkingDirectory=/opt/docker-hosting-v2/script
+WorkingDirectory=/opt/docker-hosting-v2/api
 ExecStart=/usr/local/bin/uvicorn api:app --host 0.0.0.0 --port 8000
 Restart=always
 
