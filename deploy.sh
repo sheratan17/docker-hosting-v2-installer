@@ -273,7 +273,9 @@ fi
 echo "Menambahkan cronjob backup, checkquota dan sinkron jam..."
 chmod +x /opt/docker-hosting-v2/script/quotacheck.sh
 chmod +x /opt/docker-hosting-v2/script/backup.sh
+chmod +x /opt/docker-hosting-v2/script/billing.sh
 (crontab -l ; echo "*/5 * * * * /opt/docker-hosting-v2/script/quotacheck.sh > /var/log/quotacheck.txt 2>&1") | crontab -
+(crontab -l ; echo "*/5 * * * * /opt/docker-hosting-v2/script/billing.sh --d=* > /var/log/billingcheck.txt 2>&1") | crontab -
 timedatectl set-timezone Asia/Jakarta
 timedatectl set-ntp on
 
