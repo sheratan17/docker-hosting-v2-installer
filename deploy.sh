@@ -361,6 +361,8 @@ FLUSH PRIVILEGES;
 if [ "$powerdns_option" == y ]; then
 	ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
  	if grep -q "Configurasi tambahan" "/etc/pdns/pdns.conf"; then
+  	echo "Konfigurasi PowerDNS sudah ada"
+   else
 	echo "Install PowerDNS..."
 	ssh "root@$ip_powerdns" "curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo && exit"
 	ssh "root@$ip_powerdns" "yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb && exit"
