@@ -340,6 +340,7 @@ pdns_password=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c 12)
 pdns_api=$(openssl rand -base64 14)
 
 pdns_config_line="
+# Configurasi tambahan
 api=yes
 api-key=$pdns_api
 webserver-address=127.0.0.1
@@ -359,6 +360,7 @@ FLUSH PRIVILEGES;
 "
 if [ "$powerdns_option" == y ]; then
 	ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
+ 	if grep -q "Configurasi tambahan" "/etc/pdns/pdns.conf"; then
 	echo "Install PowerDNS..."
 	ssh "root@$ip_powerdns" "curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo && exit"
 	ssh "root@$ip_powerdns" "yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb && exit"
@@ -367,6 +369,7 @@ if [ "$powerdns_option" == y ]; then
 	mysql -u root -e "$pdns_sql"
 EOF
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
+fi
 fi
 
 echo "Download image docker..."
