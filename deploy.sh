@@ -369,6 +369,7 @@ if [ "$powerdns_option" == y ]; then
 	ssh "root@$ip_powerdns" <<EOF
 	mysql -u root -e "$pdns_sql"
 EOF
+	firewall-cmd --zone=public --add-service=dns --permanent
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
 fi
 fi
