@@ -366,6 +366,7 @@ if [ "$powerdns_option" == y ]; then
 	ssh "root@$ip_powerdns" "curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo && exit"
 	ssh "root@$ip_powerdns" "yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb && exit"
 	ssh "root@$ip_powerdns" "echo '$pdns_config_line' >> '/etc/pdns/pdns.conf' &&  chown pdns:pdns /etc/pdns/pdns.conf && exit"
+	ssh "root@$ip_powerdns" "sed -i 's/powerdns_api_key/$pdns_api/g' /etc/pdns/pdns.conf"
 	ssh "root@$ip_powerdns" <<EOF
 	mysql -u root -e "$pdns_sql"
 EOF
