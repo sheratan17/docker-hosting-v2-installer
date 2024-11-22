@@ -58,7 +58,7 @@ yum install quota wget nano curl vim lsof git sshpass epel-release zip policycor
 pip install fastapi uvicorn
 
 # Aktifkan quota di /home
-grep -q "usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1" /etc/fstab
+#grep -q "usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1" /etc/fstab
 
 partition=$(df /home | awk 'NR==2 {print $1}')
 umount /home
