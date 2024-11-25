@@ -377,6 +377,7 @@ fi
 fi
 
 # Buat ssl self signed untuk API
+echo "Membuat SSL Self Signed untuk API"
 server_hostname="api.$(hostname)"
 ssl_dir="/etc/ssl/docker-hosting"
 mkdir -p $ssl_dir
