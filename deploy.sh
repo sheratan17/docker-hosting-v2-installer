@@ -371,6 +371,7 @@ if [ "$powerdns_option" == y ]; then
 	mysql -u root -e "$pdns_sql"
 EOF
 	firewall-cmd --zone=public --add-service=dns --permanent
+ 	firewall-cmd --zone=public --add-port=8081/tcp --permanent
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
 fi
 fi
