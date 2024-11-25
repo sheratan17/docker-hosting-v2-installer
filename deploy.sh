@@ -64,7 +64,7 @@ partition=$(df /home | awk 'NR==2 {print $1}')
 umount /home
 tune2fs -O quota $partition
 mount /home
-#quotaon -va
+quotaon -vugP /home
 
 #if [ $? -eq 0 ]; then
 #	echo "/etc/fstab terdeteksi sudah ada quota."
