@@ -210,7 +210,15 @@ EOF
 fi
 
 # buat ssh-keygen
-#ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
+ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
+cat ~/.ssh/id_rsa.pub
+read -p "Apakah sudah menambahkan id_rsa.pub diatas ke Github? (y/n): " github_key
+
+if [ "$github_key" == y ]; then
+echo "Lanjut"
+else
+exit
+fi
 
 systemctl daemon-reload
 
