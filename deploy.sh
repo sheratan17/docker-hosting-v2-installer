@@ -370,8 +370,9 @@ if [ "$powerdns_option" == y ]; then
 	ssh "root@$ip_powerdns" <<EOF
 	mysql -u root -e "$pdns_sql"
 EOF
+	ssh "root@$ip_powerdns" "sed -i 's/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g' /opt/docker-hosting-v2/script/config.conf"
 	firewall-cmd --zone=public --add-service=dns --permanent
- 	firewall-cmd --zone=public --add-port=8081/tcp --permanent
+ 	#firewall-cmd --zone=public --add-port=8081/tcp --permanent
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
 fi
 fi
