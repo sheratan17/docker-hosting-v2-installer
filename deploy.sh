@@ -161,7 +161,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/opt/docker-hosting-v2/script
-ExecStart=/usr/local/bin/uvicorn api:app --host 0.0.0.0 --port 8000
+ExecStart=python3 api.py
 Restart=always
 
 [Install]
