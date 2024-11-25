@@ -336,7 +336,7 @@ mkdir /backup
 fi
 
 pdns_password=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c 12)
-pdns_api=$(openssl rand -base64 14)
+pdns_api=$(< /dev/urandom tr -dc 'A-Za-z0-9' | head -c 12)
 
 pdns_config_line="
 # Configurasi tambahan
