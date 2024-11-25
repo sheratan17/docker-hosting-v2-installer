@@ -161,7 +161,7 @@ After=network.target
 [Service]
 User=root
 WorkingDirectory=/opt/docker-hosting-v2/script
-ExecStart=/usr/local/bin/uvicorn api:app --host 0.0.0.0 --port 8000
+ExecStart=python3 api.py
 Restart=always
 
 [Install]
@@ -374,6 +374,17 @@ EOF
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
 fi
 fi
+
+# Buat ssl self signed untuk API
+server_hostname="api.$(hostname)"
+ssl_dir="/etc/ssl/docker-hosting"
+mkdir -p $ssl_dir
+
+file_crt="$ssl_dir/api.crt"
+file_key="$ssl_dir/api.key"
+file_csr="$ssl_dir/api.csr"
+
+openssl req -x509 -newkey rsa:4096 -keyout $file_key -out $file_crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname"
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.9-jammy
