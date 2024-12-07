@@ -263,6 +263,7 @@ fi
 # Setting port zabbix-agent di node docker
 firewall-cmd --zone=public --add-port=10050/tcp --permanent
 firewall-cmd --zone=public --add-port=8000/tcp --permanent
+firewall-cmd --remove-service=cockpit --permanent
 firewall-cmd --reload
 
 # Masukkan IP private server
@@ -315,6 +316,7 @@ if [ "$nginx_option" == y ]; then
 	
 	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=http --permanent"
 	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=https --permanent"
+ 	ssh root@$ip_nginx "firewall-cmd --remove-service=cockpit --permanent"
 	ssh root@$ip_nginx "firewall-cmd --reload && exit"
 	ssh root@$ip_nginx "systemctl enable nginx && exit"
 	echo "Nginx selesai."
@@ -379,8 +381,9 @@ if [ "$powerdns_option" == y ]; then
 	mysql -u root -e "$pdns_sql"
 EOF
 	ssh "root@$ip_powerdns" "sed -i 's/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g' /opt/docker-hosting-v2/script/config.conf"
-	firewall-cmd --zone=public --add-service=dns --permanent
- 	#firewall-cmd --zone=public --add-port=8081/tcp --permanent
+	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-service=dns --permanent"
+ 	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-port=8081/tcp --permanent"
+  	ssh "root@$ip_powerdns" "firewall-cmd --remove-service=cockpit --permanent"
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
 fi
 fi
