@@ -244,7 +244,7 @@ fi
 if [ -d "/etc/zabbix/scripts" ]; then
 	echo "Direktori /etc/zabbix/scripts sudah ada"
 else
-	mkdir /etc/zabbix/scripts
+	sudo mkdir /etc/zabbix/scripts
 	mv /opt/docker-hosting-v2/script/user-quota.sh /etc/zabbix/scripts
 	chmod +x /etc/zabbix/scripts/user-quota.sh
 	# Edit file config zabbix-agent2
