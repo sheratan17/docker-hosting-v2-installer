@@ -402,8 +402,8 @@ openssl req -x509 -newkey rsa:4096 -keyout $file_key -out $file_crt -sha256 -day
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.9-jammy
-docker image pull sheratan17/php8.2-apache:v1
-docker image pull wordpress:6.6.2-php8.3
+docker image pull sheratan17/php:8.3.14-apache-im
+docker image pull wordpress:6.7.1-php8.3
 docker image pull phpmyadmin:5.2.1-apache
 docker image pull filebrowser/filebrowser:s6
 echo
