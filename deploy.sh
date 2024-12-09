@@ -49,7 +49,19 @@ fi
 echo
 read -p "Masukkan alamat email admin (Untuk aktivasi SSL): " email_admin
 echo
-echo "Input selesai, mulai proses install..."
+
+# buat ssh-keygen
+ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
+cat ~/.ssh/id_rsa.pub
+read -p "Apakah sudah menambahkan id_rsa.pub diatas ke Github? (y/n): " github_key
+
+if [ "$github_key" == y ]; then
+	echo
+	echo "Input selesai, mulai proses install..."
+else
+	exit
+fi
+
 sleep 3
 
 # install library
@@ -207,17 +219,6 @@ cat << EOF > /etc/docker/daemon.json
  "selinux-enabled": true
 }
 EOF
-fi
-
-# buat ssh-keygen
-ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
-cat ~/.ssh/id_rsa.pub
-read -p "Apakah sudah menambahkan id_rsa.pub diatas ke Github? (y/n): " github_key
-
-if [ "$github_key" == y ]; then
-echo "Lanjut"
-else
-exit
 fi
 
 systemctl daemon-reload
