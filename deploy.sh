@@ -121,7 +121,8 @@ if [[ $os_version == *"AlmaLinux 9"* ]]; then
         rpm -Uvh /root/zabbix-release-latest.el9.noarch.rpm
         dnf clean all
 		sed -i '/name=Extra Packages for Enterprise Linux \$releasever - \$basearch/a excludepkgs=zabbix*' /etc/yum.repos.d/epel.repo
-        dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
+        #dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
+	dnf install zabbix-agent2 -y
     else
         echo "Baris '$exclude_line' sudah ada di $repo_file. Tidak perlu melakukan apa-apa."
     fi
