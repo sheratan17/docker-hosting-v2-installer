@@ -336,7 +336,7 @@ touch /var/log/quotacheck.txt
 touch /var/log/billingcheck.txt
 touch /var/log/sslcheck.txt
 (crontab -l ; echo "*/5 * * * * /opt/docker-hosting-v2/script/billing.sh --d=* > /var/log/billingcheck.txt 2>&1") | crontab -
-(crontab -1 ; echo "0 1 * * * /usr/bin/certbot renew --nginx > /var/log/sslcheck.txt 2>&1") | crontab -
+(crontab -l ; echo "0 1 * * * /usr/bin/certbot renew --nginx > /var/log/sslcheck.txt 2>&1") | crontab -
 echo "crontab ditambahkan"
 fi
 
