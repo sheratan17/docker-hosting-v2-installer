@@ -394,7 +394,7 @@ EOF
  	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-port=8081/tcp --permanent"
   	ssh "root@$ip_powerdns" "firewall-cmd --remove-service=cockpit --permanent"
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
- 	sed -i "s/_serverdns/$ip_powerdns/g" /opt/docker-hosting-v2/script/config.conf"
+ 	sed -i "s/_serverdns/$ip_powerdns/g" "/opt/docker-hosting-v2/script/config.conf"
 fi
 fi
 
