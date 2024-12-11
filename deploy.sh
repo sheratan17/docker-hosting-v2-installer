@@ -328,7 +328,7 @@ echo "Menambahkan cronjob backup, checkquota dan sinkron jam..."
 chmod +x /opt/docker-hosting-v2/script/quotacheck.sh
 chmod +x /opt/docker-hosting-v2/script/backup.sh
 chmod +x /opt/docker-hosting-v2/script/billing.sh
-cari_crontab="quotacheck.sh"
+cari_crontab="billing.sh"
 if crontab -l 2>/dev/null | grep -q "cari_crontab"; then
 	echo "crontab ok"
 else
