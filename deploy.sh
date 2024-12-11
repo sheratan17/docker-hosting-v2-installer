@@ -53,6 +53,7 @@ echo
 # buat ssh-keygen
 ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
 cat ~/.ssh/id_rsa.pub
+echo
 read -p "Apakah sudah menambahkan id_rsa.pub diatas ke Github? (y/n): " github_key
 
 if [ "$github_key" == y ]; then
