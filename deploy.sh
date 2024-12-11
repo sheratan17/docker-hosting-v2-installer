@@ -51,8 +51,12 @@ read -p "Masukkan alamat email admin (Untuk aktivasi SSL): " email_admin
 echo
 
 # buat ssh-keygen
+if [ -f "/root/.ssh/id_rsa" ]; then
+cat ~/.ssh/id_rsa.pub
+	else
 ssh-keygen -t rsa -N '' -f ~/.ssh/id_rsa <<< y
 cat ~/.ssh/id_rsa.pub
+fi
 echo
 read -p "Apakah sudah menambahkan id_rsa.pub diatas ke Github? (y/n): " github_key
 
