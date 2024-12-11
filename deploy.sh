@@ -70,6 +70,7 @@ yum update -y
 yum install quota wget nano curl vim lsof git sshpass epel-release zip policycoreutils-python-utils python3-pip httpd-tools -y
 pip install fastapi uvicorn
 
+partition=$(df /home | awk 'NR==2 {print $1}')
 umount /home
 tune2fs -O quota $partition
 mount /home
@@ -77,7 +78,6 @@ quotaon -vugP /home
 
 # Aktifkan quota di /home
 #grep -q "usrjquota=aquota.user,grpjquota=aquota.group,jqfmt=vfsv1" /etc/fstab
-#partition=$(df /home | awk 'NR==2 {print $1}')
 #if [ $? -eq 0 ]; then
 #	echo "/etc/fstab terdeteksi sudah ada quota."
 #	else
