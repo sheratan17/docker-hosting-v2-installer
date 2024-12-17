@@ -316,7 +316,7 @@ if [ "$nginx_option" == y ]; then
 	sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/web-template.conf.inc
 	sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/wp-template.conf.inc
 	scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
-	#ssh root@$ip_nginx 'sed -i "/http {/a \    server_tokens off;" /etc/nginx/nginx.conf && exit'
+	scp /opt/docker-hosting-v2/server-template/*.conf root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	
 	# ubah bash script agar menggunakan IP nginx
 	sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
