@@ -207,6 +207,7 @@ cat << EOF >> /etc/audit/rules.d/audit.rules
 -w /usr/bin/containerd-shim-runc-v2 -k docker
 -w /usr/bin/runc -k docker
 -w /etc/docker/daemon.json -k docker
+-w /run/containerd/containerd.sock -k docker
 EOF
 fi
 service auditd restart
@@ -221,7 +222,8 @@ cat << EOF > /etc/docker/daemon.json
  "live-restore": true,
  "no-new-privileges": true,
  "userland-proxy" : false,
- "selinux-enabled": true
+ "selinux-enabled": true,
+ "icc": false
 }
 EOF
 fi
