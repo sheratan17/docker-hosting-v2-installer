@@ -412,6 +412,17 @@ file_csr="$ssl_dir/api.csr"
 
 openssl req -x509 -newkey rsa:4096 -keyout $file_key -out $file_crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname"
 
+echo "Membuat SSL Self Signed untuk nginx"
+server_hostname_nginx="$(hostname)"
+ssl_dir_nginx="/etc/ssl/nginx"
+mkdir -p $ssl_dir_nginx
+
+file_crt_nginx="$ssl_dir_nginx/nginx.crt"
+file_key_nginx="$ssl_dir_nginx/nginx.key"
+file_csr_nginx="$ssl_dir_nginx/nginx.csr"
+
+openssl req -x509 -newkey rsa:4096 -keyout $file_key_nginx -out $file_crt_nginx -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname_nginx"
+
 echo "Download image docker..."
 docker image pull mariadb:10.11.9-jammy
 docker image pull sheratan17/php:8.3.14-apache-im
