@@ -313,9 +313,11 @@ if [ "$nginx_option" == y ]; then
 	
 	# download script dan update config di nginx reverse
 	# tambahkan template nginx dari tiap CMS disini
+	ssh root@$ip_nginx "mv /etc/nginx/nginx.conf /etc/nginx/nginx.conf.os.default"
+	scp /opt/docker-hosting-v2/server-template/nginx.conf root@$ip_nginx:/etc/nginx/ || exit 1
 	scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
-	scp /opt/docker-hosting-v2/server-template/*.conf root@$ip_nginx:/etc/nginx/conf.d || exit 1
-	
+	scp /opt/docker-hosting-v2/server-template/status.conf root@$ip_nginx:/etc/nginx/conf.d || exit 1
+		
 	# ubah bash script agar menggunakan IP nginx
 	sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
 	sed -i "s/_ipprivate_node_/$ipprivate_node/g" /opt/docker-hosting-v2/script/config.conf
