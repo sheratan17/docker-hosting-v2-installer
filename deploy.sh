@@ -147,7 +147,7 @@ else
 fi
 
 # sanity check fail2ban
-if [grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local"]; then
+if grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local"; then
 	echo "fail2ban sshd.local terdeteksi sudah ada"
 else
 	echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
