@@ -147,7 +147,7 @@ else
 fi
 
 # sanity check fail2ban
-if grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local"; then
+if [grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local"]; then
 	echo "fail2ban sshd.local terdeteksi sudah ada"
 else
 	echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
@@ -262,7 +262,7 @@ else
 	# Masukkan email admin
 fi
 
-if grep -q "_email" "/opt/docker-hosting-v2/script/config.conf"; then
+if [grep -q "_email" "/opt/docker-hosting-v2/script/config.conf"]; then
 	sed -i "s/^email=_email/email=$email_admin/" /opt/docker-hosting-v2/script/config.conf
 else
 	echo "Email di config sudah ada"
@@ -292,14 +292,14 @@ if [ "$nginx_option" == y ]; then
 	
 	# Sanity Check jail dan sshd.local apabila nginx dan docker menggunakan server yang sama
 	
-	content_to_insert="# 3x Gagal, ban 1 jam
+	sshd_rules="# 3x Gagal, ban 1 jam
 	[sshd]
 	enabled = true
 	bantime = 1h
 	maxretry = 3"
 	
 	copy_command="touch /etc/fail2ban/jail.d/sshd.local && cp /etc/fail2ban/jail.conf /etc/fail2ban/jail.local && mv /etc/fail2ban/jail.d/00-firewalld.conf /etc/fail2ban/jail.d/00-firewalld.local && exit"
-	insert_command="echo \"$content_to_insert\" | sudo tee -a \"/etc/fail2ban/jail.d/sshd.local\" > /dev/null"
+	insert_command="echo \"$sshd_rules\" | sudo tee -a \"/etc/fail2ban/jail.d/sshd.local\" > /dev/null"
 	
 	if ssh "root@$ip_nginx" "grep -q '# 3x Gagal, ban 1 jam' /etc/fail2ban/jail.d/sshd.local"; then
 		echo "fail2ban sshd.local terdeteksi sudah ada"
@@ -313,8 +313,6 @@ if [ "$nginx_option" == y ]; then
 	
 	# download script dan update config di nginx reverse
 	# tambahkan template nginx dari tiap CMS disini
-	sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/web-template.conf.inc
-	sed -i "s/_ipprivate_node/$ipprivate_node/g" /opt/docker-hosting-v2/server-template/wp-template.conf.inc
 	scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	scp /opt/docker-hosting-v2/server-template/*.conf root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	
