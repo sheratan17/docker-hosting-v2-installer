@@ -174,6 +174,8 @@ cat << EOF >> /etc/systemd/system/uvicorn.service
 [Unit]
 Description=Uvicorn FastAPI Service for Docker Hosting v2
 After=network.target
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Service]
 User=root
@@ -181,8 +183,6 @@ WorkingDirectory=/opt/docker-hosting-v2/script
 ExecStart=python3 api.py
 Restart=on-failure
 RestartSec=5
-StartLimitIntervalSec=60
-StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target
@@ -415,6 +415,7 @@ EOF
  	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-port=8081/tcp --permanent"
   	ssh "root@$ip_powerdns" "firewall-cmd --remove-service=cockpit --permanent"
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
+	(crontab -l ; echo "*/5 * * * * /usr/bin/pdns_control notify "*" > /var/log/notify.txt 2>&1") | crontab -
  	fi
 fi
 
