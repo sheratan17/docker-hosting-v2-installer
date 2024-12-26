@@ -179,7 +179,10 @@ After=network.target
 User=root
 WorkingDirectory=/opt/docker-hosting-v2/script
 ExecStart=python3 api.py
-Restart=always
+Restart=on-failure
+RestartSec=5
+StartLimitIntervalSec=60
+StartLimitBurst=5
 
 [Install]
 WantedBy=multi-user.target
@@ -372,6 +375,22 @@ gmysql-host=localhost
 gmysql-dbname=pdns
 gmysql-user=pdnsadmin
 gmysql-password=$pdns_password
+
+#Dibawah ini adalah konfigurasi untuk clustering bagian master
+#gmysql-dnssec=no
+#primary=yes
+#secondary=no
+#xfr-cycle-interval=10
+#log-dns-queries=yes
+#log-timestamp=yes
+#query-logging=yes
+#disable-syslog=no
+
+#Tambahkan juga baris dibawah ini untuk bagian slave 
+#allow-dnsupdate-from=IP_MASTER
+#allow-axfr-ips=IP_MASTER
+#allow-notify-from=IP_MASTER
+#autosecondary=no
 "
 pdns_sql="
 CREATE DATABASE pdns;
