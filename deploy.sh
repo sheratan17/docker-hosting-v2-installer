@@ -320,10 +320,6 @@ if [ "$nginx_option" == y ]; then
 	scp /opt/docker-hosting-v2/server-template/nginx.conf root@$ip_nginx:/etc/nginx/ || exit 1
 	scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	scp /opt/docker-hosting-v2/server-template/status.conf root@$ip_nginx:/etc/nginx/conf.d || exit 1
-		
-	# ubah bash script agar menggunakan IP nginx
-	sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
-	sed -i "s/_ipprivate_node_/$ipprivate_node/g" /opt/docker-hosting-v2/script/config.conf
 	
 	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=http --permanent"
 	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=https --permanent"
@@ -333,6 +329,10 @@ if [ "$nginx_option" == y ]; then
 	echo "Nginx selesai."
 	echo
 fi
+
+# ubah bash script agar menggunakan IP nginx
+sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
+sed -i "s/_ipprivate_node_/$ipprivate_node/g" /opt/docker-hosting-v2/script/config.conf
 
 echo "Menambahkan cronjob backup, checkquota dan sinkron jam..."
 chmod +x /opt/docker-hosting-v2/script/quotacheck.sh
@@ -401,7 +401,7 @@ if [ "$powerdns_option" == y ]; then
 	ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
  	if grep -q "Configurasi tambahan" "/etc/pdns/pdns.conf"; then
   	echo "Konfigurasi PowerDNS sudah ada"
-   else
+	else
 	echo "Install PowerDNS..."
 	ssh "root@$ip_powerdns" "curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo && exit"
 	ssh "root@$ip_powerdns" "yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb && exit"
@@ -415,10 +415,12 @@ EOF
  	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-port=8081/tcp --permanent"
   	ssh "root@$ip_powerdns" "firewall-cmd --remove-service=cockpit --permanent"
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
- 	sed -i "s/_serverdns/$ip_powerdns/g" "/opt/docker-hosting-v2/script/config.conf"
-fi
+ 	fi
 fi
 
+# Menambahkan IP powerdns ke config.conf
+sed -i "s/_serverdns/$ip_powerdns/g" "/opt/docker-hosting-v2/script/config.conf"
+	
 # Buat ssl self signed untuk API
 echo "Membuat SSL Self Signed untuk API"
 server_hostname="api.$(hostname)"
