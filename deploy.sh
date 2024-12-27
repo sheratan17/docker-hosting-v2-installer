@@ -17,6 +17,7 @@ read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
 read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
 echo
 read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
+echo
 
 if [ "$pass_nginx" != "$pass_nginx2" ]; then
 	echo
