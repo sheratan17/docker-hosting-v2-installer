@@ -118,7 +118,7 @@ if [[ $os_version == *"AlmaLinux 9"* ]]; then
         dnf clean all
 		sed -i '/name=Extra Packages for Enterprise Linux \$releasever - \$basearch/a excludepkgs=zabbix*' /etc/yum.repos.d/epel.repo
         #dnf install zabbix-agent2 zabbix-agent2-plugin-* -y
-	dnf install zabbix-agent2 -y
+		dnf install zabbix-agent2 -y
     else
         echo "Baris '$exclude_line' sudah ada di $repo_file. Tidak perlu melakukan apa-apa."
     fi
@@ -420,8 +420,12 @@ if [ "$powerdns_option" == y ]; then
 	ssh "root@$ip_powerdns" <<EOF
 echo "Install PowerDNS..."
 curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo
-yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb
-echo "$pdns_config_line" >> /etc/pdns/pdns.conf &&  chown pdns:pdns /etc/pdns/pdns.conf && exit
+yum install pdns pdns-backend-mysql mariadb-server -y
+systemctl enable mariadb
+systemctl enable pdns
+systemctl restart mariadb
+echo "$pdns_config_line" >> /etc/pdns/pdns.conf
+chown pdns:pdns /etc/pdns/pdns.conf
 sed -i s/powerdns_api_key/$pdns_api/g /etc/pdns/pdns.conf
 mysql -u root -e "$pdns_sql"
 firewall-cmd --zone=public --add-service=dns --permanent
