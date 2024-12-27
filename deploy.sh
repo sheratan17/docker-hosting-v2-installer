@@ -405,6 +405,9 @@ CREATE DATABASE pdns;
 GRANT ALL PRIVILEGES ON pdns.* TO 'pdnsadmin'@'localhost' IDENTIFIED BY '$pdns_password';
 FLUSH PRIVILEGES;
 "
+
+ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
+
 if [ "$powerdns_option" == y ]; then
 	pdns_config_line2="Configurasi tambahan"
 	sshpass -p "$pass_powerdns" ssh-copy-id root@$ip_powerdns
