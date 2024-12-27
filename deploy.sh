@@ -27,6 +27,7 @@ if [ "$pass_nginx" != "$pass_nginx2" ]; then
 fi
 
 echo
+echo
 read -p "Apakah anda ingin install PowerDNS? PowerDNS dapat di install di server ini atau server lain (y/n): " powerdns_option
 echo
 
