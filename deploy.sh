@@ -432,7 +432,7 @@ EOF
 fi
 
 # Menambahkan IP dan APIKEY powerdns ke config.conf
-sed -i 's/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g' /opt/docker-hosting-v2/script/config.conf
+sed -i "s/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g" /opt/docker-hosting-v2/script/config.conf
 sed -i "s/_serverdns/$ip_powerdns/g" "/opt/docker-hosting-v2/script/config.conf"
 	
 # Buat ssl self signed untuk API
