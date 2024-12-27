@@ -317,13 +317,25 @@ if [ "$nginx_option" == y ]; then
 	scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	scp /opt/docker-hosting-v2/server-template/status.conf root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	
-	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=http --permanent"
-	ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=https --permanent"
- 	ssh root@$ip_nginx "firewall-cmd --remove-service=cockpit --permanent"
-	ssh root@$ip_nginx "firewall-cmd --reload && exit"
-	ssh root@$ip_nginx "systemctl enable nginx && exit"
-	echo "Nginx selesai."
-	echo
+	ssh root@ip_nginx << EOF
+echo "Membuat SSL Self Signed untuk nginx"
+server_hostname_nginx="$(hostname)"
+ssl_dir_nginx="/etc/ssl/nginx"
+mkdir -p $ssl_dir_nginx
+
+file_crt_nginx="$ssl_dir_nginx/nginx.crt"
+file_key_nginx="$ssl_dir_nginx/nginx.key"
+file_csr_nginx="$ssl_dir_nginx/nginx.csr"
+
+openssl req -x509 -newkey rsa:4096 -keyout $file_key_nginx -out $file_crt_nginx -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=\$server_hostname_nginx"
+ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=http --permanent"
+ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=https --permanent"
+ssh root@$ip_nginx "firewall-cmd --remove-service=cockpit --permanent"
+ssh root@$ip_nginx "firewall-cmd --reload && exit"
+ssh root@$ip_nginx "systemctl enable nginx && exit"
+echo "Nginx selesai."
+echo
+EOF
 fi
 
 # ubah bash script agar menggunakan IP nginx
