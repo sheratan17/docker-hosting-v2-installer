@@ -321,18 +321,18 @@ if [ "$nginx_option" == y ]; then
 echo "Membuat SSL Self Signed untuk nginx"
 server_hostname_nginx="$(hostname)"
 ssl_dir_nginx="/etc/ssl/nginx"
-mkdir -p $ssl_dir_nginx
+mkdir -p "$ssl_dir_nginx"
 
 file_crt_nginx="$ssl_dir_nginx/nginx.crt"
 file_key_nginx="$ssl_dir_nginx/nginx.key"
 file_csr_nginx="$ssl_dir_nginx/nginx.csr"
 
 openssl req -x509 -newkey rsa:4096 -keyout $file_key_nginx -out $file_crt_nginx -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=\$server_hostname_nginx"
-ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=http --permanent"
-ssh root@$ip_nginx "firewall-cmd --zone=public --add-service=https --permanent"
-ssh root@$ip_nginx "firewall-cmd --remove-service=cockpit --permanent"
-ssh root@$ip_nginx "firewall-cmd --reload && exit"
-ssh root@$ip_nginx "systemctl enable nginx && exit"
+firewall-cmd --zone=public --add-service=http --permanent
+firewall-cmd --zone=public --add-service=https --permanent
+firewall-cmd --remove-service=cockpit --permanent
+firewall-cmd --reload
+systemctl enable nginx
 echo "Nginx selesai."
 echo
 EOF
@@ -415,13 +415,13 @@ if [ "$powerdns_option" == y ]; then
 	if [ $? -eq 0 ]; then
   	echo "Konfigurasi PowerDNS sudah ada"
 	else
-	echo "Install PowerDNS..."
-	ssh "root@$ip_powerdns" "curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo && exit"
-	ssh "root@$ip_powerdns" "yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb && exit"
-	ssh "root@$ip_powerdns" "echo '$pdns_config_line' >> '/etc/pdns/pdns.conf' &&  chown pdns:pdns /etc/pdns/pdns.conf && exit"
-	ssh "root@$ip_powerdns" "sed -i 's/powerdns_api_key/$pdns_api/g' /etc/pdns/pdns.conf"
 	ssh "root@$ip_powerdns" <<EOF
-	mysql -u root -e "$pdns_sql"
+echo "Install PowerDNS..."
+curl -o /etc/yum.repos.d/powerdns-auth-49.repo https://repo.powerdns.com/repo-files/el-auth-49.repo
+yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariadb && systemctl enable pdns && systemctl restart mariadb
+echo "$pdns_config_line" >> /etc/pdns/pdns.conf &&  chown pdns:pdns /etc/pdns/pdns.conf && exit
+sed -i s/powerdns_api_key/$pdns_api/g /etc/pdns/pdns.conf
+mysql -u root -e "$pdns_sql"
 EOF
 	ssh "root@$ip_powerdns" "sed -i 's/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g' /opt/docker-hosting-v2/script/config.conf"
 	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-service=dns --permanent"
