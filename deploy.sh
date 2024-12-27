@@ -325,11 +325,7 @@ echo "Membuat SSL Self Signed untuk nginx"
 server_hostname_nginx="$(hostname)"
 mkdir -p /etc/ssl/nginx
 
-file_crt_nginx="/etc/ssl/nginx/nginx.crt"
-file_key_nginx="/etc/ssl/nginx/nginx.key"
-file_csr_nginx="/etc/ssl/nginx/nginx.csr"
-
-openssl req -x509 -newkey rsa:4096 -keyout $file_key_nginx -out $file_crt_nginx -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=\$server_hostname_nginx"
+openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/nginx/nginx.key -out /etc/ssl/nginx/nginx.crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=\$server_hostname_nginx"
 firewall-cmd --zone=public --add-service=http --permanent
 firewall-cmd --zone=public --add-service=https --permanent
 firewall-cmd --remove-service=cockpit --permanent
