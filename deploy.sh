@@ -431,7 +431,7 @@ mysql -u root -e "$pdns_sql"
 firewall-cmd --zone=public --add-service=dns --permanent
 firewall-cmd --zone=public --add-port=8081/tcp --permanent
 firewall-cmd --remove-service=cockpit --permanent
-mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
+mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql
 (crontab -l ; echo "*/5 * * * * /usr/bin/pdns_control notify "*" > /var/log/notify.txt 2>&1") | crontab -
 EOF
 	fi
@@ -439,7 +439,7 @@ fi
 
 # Menambahkan IP dan APIKEY powerdns ke config.conf
 sed -i "s/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g" /opt/docker-hosting-v2/script/config.conf
-sed -i "s/_serverdns/$ip_powerdns/g" "/opt/docker-hosting-v2/script/config.conf"
+sed -i "s/_serverdns/$ip_powerdns/g" /opt/docker-hosting-v2/script/config.conf
 	
 # Buat ssl self signed untuk API
 echo "Membuat SSL Self Signed untuk API"
