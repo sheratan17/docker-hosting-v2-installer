@@ -13,14 +13,10 @@ echo
 read -p "Masukkan IP PRIVATE server Node Docker: " ipprivate_node
 read -p "Apakah anda ingin install nginx? nginx dapat di install di server ini atau server lain (y/n): " nginx_option
 echo
-
-if [ "$nginx_option" == y ]; then
-	read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
-	read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
-	echo
-	read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
-	echo
-fi
+read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
+read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
+echo
+read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
 
 if [ "$pass_nginx" != "$pass_nginx2" ]; then
 	echo
@@ -41,7 +37,6 @@ if [ "$powerdns_option" == y ]; then
 fi
 
 if [ "$pass_powerdns" != "$pass_powerdns2" ]; then
-	echo
 	echo "Password PowerDNS tidak cocok. Silakan coba lagi."
 	exit 1
 fi
