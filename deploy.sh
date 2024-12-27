@@ -407,7 +407,7 @@ FLUSH PRIVILEGES;
 "
 if [ "$powerdns_option" == y ]; then
 	pdns_config_line2="Configurasi tambahan"
-	ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
+	sshpass -p "$pass_powerdns" ssh-copy-id root@$ip_powerdns
 	ssh "root@$ip_powerdns" "grep -q '${pdns_config_line2}' '/etc/pdns/pdns.conf'"
 	if [ $? -eq 0 ]; then
   	echo "Konfigurasi PowerDNS sudah ada"
