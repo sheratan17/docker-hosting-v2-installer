@@ -143,7 +143,7 @@ else
 fi
 
 # sanity check fail2ban
-if grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local"; then
+if grep -q "# 3x Gagal, ban 1 jam" "/etc/fail2ban/jail.d/sshd.local" 2>/dev/null; then
 	echo "fail2ban sshd.local terdeteksi sudah ada"
 else
 	echo "fail2ban sshd.local tidak terdeteksi. Memulai menambahkan rules..."
@@ -189,7 +189,7 @@ sudo systemctl daemon-reload
 sudo systemctl enable uvicorn
 
 # Menambahkan service docker agar dipantau oleh SELinux, sanity check sudah ada atau belum
-if grep -q "w /usr/bin/dockerd -k docker" "/etc/audit/rules.d/audit.rules"; then
+if grep -q "w /usr/bin/dockerd -k docker" "/etc/audit/rules.d/audit.rules" 2>/dev/null; then
 	echo "Rules audit terdeteksi sudah ada"
 else
 	echo "audit.rules tidak terdeteksi. Memulai menambahkan..."
@@ -212,7 +212,7 @@ fi
 service auditd restart
 
 # Edit config docker agar lebih aman, sanity check sudah ada atau belum
-if grep -q "live-restore" "/etc/docker/daemon.json"; then
+if grep -q "live-restore" "/etc/docker/daemon.json" 2>/dev/null; then
 	echo "Custom config docker sudah ada"
 else
 	echo "Custom config docker tidak terdeteksi. Memulai menambahkan..."
@@ -286,8 +286,11 @@ ssh-keyscan -t rsa $ip_nginx >> /root/.ssh/known_hosts
 
 if [ "$nginx_option" == y ]; then
 	sshpass -p "$pass_nginx" ssh-copy-id root@$ip_nginx
-	ssh root@$ip_nginx "yum update -y && yum install epel-release -y && exit"
-	ssh root@$ip_nginx "yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld -y && exit"
+	ssh root@$ip_nginx <<EOF
+yum update -y
+yum install epel-release -y
+yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld -y
+EOF
 	
 	# Sanity Check jail dan sshd.local apabila nginx dan docker menggunakan server yang sama
 	
@@ -320,12 +323,11 @@ if [ "$nginx_option" == y ]; then
 	ssh root@$ip_nginx <<EOF
 echo "Membuat SSL Self Signed untuk nginx"
 server_hostname_nginx="$(hostname)"
-ssl_dir_nginx="/etc/ssl/nginx"
-mkdir -p "$ssl_dir_nginx"
+mkdir -p /etc/ssl/nginx
 
-file_crt_nginx="$ssl_dir_nginx/nginx.crt"
-file_key_nginx="$ssl_dir_nginx/nginx.key"
-file_csr_nginx="$ssl_dir_nginx/nginx.csr"
+file_crt_nginx="/etc/ssl/nginx/nginx.crt"
+file_key_nginx="/etc/ssl/nginx/nginx.key"
+file_csr_nginx="/etc/ssl/nginx/nginx.csr"
 
 openssl req -x509 -newkey rsa:4096 -keyout $file_key_nginx -out $file_crt_nginx -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=\$server_hostname_nginx"
 firewall-cmd --zone=public --add-service=http --permanent
