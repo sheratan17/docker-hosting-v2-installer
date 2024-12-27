@@ -422,17 +422,17 @@ yum install pdns pdns-backend-mysql mariadb-server -y && systemctl enable mariad
 echo "$pdns_config_line" >> /etc/pdns/pdns.conf &&  chown pdns:pdns /etc/pdns/pdns.conf && exit
 sed -i s/powerdns_api_key/$pdns_api/g /etc/pdns/pdns.conf
 mysql -u root -e "$pdns_sql"
+firewall-cmd --zone=public --add-service=dns --permanent
+firewall-cmd --zone=public --add-port=8081/tcp --permanent
+firewall-cmd --remove-service=cockpit --permanent
+mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
+(crontab -l ; echo "*/5 * * * * /usr/bin/pdns_control notify "*" > /var/log/notify.txt 2>&1") | crontab -
 EOF
-	ssh "root@$ip_powerdns" "sed -i 's/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g' /opt/docker-hosting-v2/script/config.conf"
-	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-service=dns --permanent"
- 	ssh "root@$ip_powerdns" "firewall-cmd --zone=public --add-port=8081/tcp --permanent"
-  	ssh "root@$ip_powerdns" "firewall-cmd --remove-service=cockpit --permanent"
-	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
-	(crontab -l ; echo "*/5 * * * * /usr/bin/pdns_control notify "*" > /var/log/notify.txt 2>&1") | crontab -
 	fi
 fi
 
-# Menambahkan IP powerdns ke config.conf
+# Menambahkan IP dan APIKEY powerdns ke config.conf
+sed -i 's/APIKEY=powerdns_api_key/APIKEY=$pdns_api/g' /opt/docker-hosting-v2/script/config.conf
 sed -i "s/_serverdns/$ip_powerdns/g" "/opt/docker-hosting-v2/script/config.conf"
 	
 # Buat ssl self signed untuk API
@@ -446,17 +446,6 @@ file_key="$ssl_dir/api.key"
 file_csr="$ssl_dir/api.csr"
 
 openssl req -x509 -newkey rsa:4096 -keyout $file_key -out $file_crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname"
-
-echo "Membuat SSL Self Signed untuk nginx"
-server_hostname_nginx="$(hostname)"
-ssl_dir_nginx="/etc/ssl/nginx"
-mkdir -p $ssl_dir_nginx
-
-file_crt_nginx="$ssl_dir_nginx/nginx.crt"
-file_key_nginx="$ssl_dir_nginx/nginx.key"
-file_csr_nginx="$ssl_dir_nginx/nginx.csr"
-
-openssl req -x509 -newkey rsa:4096 -keyout $file_key_nginx -out $file_crt_nginx -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname_nginx"
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.9-jammy
