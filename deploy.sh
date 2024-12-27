@@ -18,7 +18,6 @@ read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
 echo
 read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
 echo
-echo
 
 if [ "$pass_nginx" != "$pass_nginx2" ]; then
 	echo
@@ -26,7 +25,6 @@ if [ "$pass_nginx" != "$pass_nginx2" ]; then
 	exit 1
 fi
 
-echo
 echo
 read -p "Apakah anda ingin install PowerDNS? PowerDNS dapat di install di server ini atau server lain (y/n): " powerdns_option
 echo
