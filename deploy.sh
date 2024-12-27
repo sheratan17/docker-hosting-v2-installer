@@ -317,7 +317,7 @@ if [ "$nginx_option" == y ]; then
 	scp /opt/docker-hosting-v2/server-template/*.conf.inc root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	scp /opt/docker-hosting-v2/server-template/status.conf root@$ip_nginx:/etc/nginx/conf.d || exit 1
 	
-	ssh root@ip_nginx << EOF
+	ssh root@$ip_nginx <<EOF
 echo "Membuat SSL Self Signed untuk nginx"
 server_hostname_nginx="$(hostname)"
 ssl_dir_nginx="/etc/ssl/nginx"
@@ -406,8 +406,10 @@ GRANT ALL PRIVILEGES ON pdns.* TO 'pdnsadmin'@'localhost' IDENTIFIED BY '$pdns_p
 FLUSH PRIVILEGES;
 "
 if [ "$powerdns_option" == y ]; then
+	pdns_config_line2="Configurasi tambahan"
 	ssh-keyscan -t rsa $ip_powerdns >> /root/.ssh/known_hosts
- 	if grep -q "Configurasi tambahan" "/etc/pdns/pdns.conf"; then
+	ssh "root@$ip_powerdns" "grep -q '${pdns_config_line2}' '/etc/pdns/pdns.conf'"
+	if [ $? -eq 0 ]; then
   	echo "Konfigurasi PowerDNS sudah ada"
 	else
 	echo "Install PowerDNS..."
@@ -424,7 +426,7 @@ EOF
   	ssh "root@$ip_powerdns" "firewall-cmd --remove-service=cockpit --permanent"
 	ssh "root@$ip_powerdns" "mysql -u root pdns < /usr/share/doc/pdns-backend-mysql/schema.mysql.sql"
 	(crontab -l ; echo "*/5 * * * * /usr/bin/pdns_control notify "*" > /var/log/notify.txt 2>&1") | crontab -
- 	fi
+	fi
 fi
 
 # Menambahkan IP powerdns ke config.conf
