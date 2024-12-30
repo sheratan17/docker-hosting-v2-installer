@@ -289,7 +289,7 @@ if [ "$nginx_option" == y ]; then
 	ssh root@$ip_nginx <<EOF
 yum update -y
 yum install epel-release -y
-yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld -y
+yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld nginx-mod-modsecurity -y
 EOF
 	
 	# Sanity Check jail dan sshd.local apabila nginx dan docker menggunakan server yang sama
