@@ -14,6 +14,7 @@ read -p "Masukkan IP PRIVATE server Node Docker: " ipprivate_node
 read -p "Apakah anda ingin install nginx? nginx dapat di install di server ini atau server lain (y/n): " nginx_option
 echo
 read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
+read -p "Masukkan IP PRIVATE server nginx reverse proxy: " ipprivate_nginx
 read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
 echo
 read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
@@ -341,6 +342,7 @@ fi
 # ubah bash script agar menggunakan IP nginx
 sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
 sed -i "s/_ipprivate_node_/$ipprivate_node/g" /opt/docker-hosting-v2/script/config.conf
+sed -i "s/_privateservernginx/$ipprivate_nginx/g" /opt/docker-hosting-v2/script/config.conf
 
 echo "Menambahkan cronjob backup, checkquota dan sinkron jam..."
 chmod +x /opt/docker-hosting-v2/script/quotacheck.sh
@@ -465,7 +467,8 @@ EOF
 "
 
 sudo ssh "root@$ip_nginx" "systemctl start proxysql"
-sudo ssh "root@$ip_nginx" "$proxysql_config" 2>&1
+sleep 3
+sudo ssh "root@$ip_nginx" "$proxysql_config" > /dev/null 2>&1
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.10-jammy
