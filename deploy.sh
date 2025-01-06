@@ -270,7 +270,6 @@ fi
 # Setting port firewall
 firewall-cmd --zone=public --add-port=10050/tcp --permanent
 firewall-cmd --zone=public --add-port=8000/tcp --permanent
-firewall-cmd --zone=public --add-port=3306/tcp --permanent
 firewall-cmd --remove-service=cockpit --permanent
 firewall-cmd --reload
 
@@ -329,6 +328,7 @@ mkdir -p /etc/ssl/nginx
 openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/nginx/nginx.key -out /etc/ssl/nginx/nginx.crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=\$server_hostname_nginx"
 firewall-cmd --zone=public --add-service=http --permanent
 firewall-cmd --zone=public --add-service=https --permanent
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
 firewall-cmd --remove-service=cockpit --permanent
 firewall-cmd --reload
 systemctl enable nginx
