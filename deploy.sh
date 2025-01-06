@@ -267,9 +267,10 @@ else
 	echo "Email di config sudah ada"
 fi
 
-# Setting port zabbix-agent di node docker
+# Setting port firewall
 firewall-cmd --zone=public --add-port=10050/tcp --permanent
 firewall-cmd --zone=public --add-port=8000/tcp --permanent
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
 firewall-cmd --remove-service=cockpit --permanent
 firewall-cmd --reload
 
@@ -289,7 +290,7 @@ if [ "$nginx_option" == y ]; then
 	ssh root@$ip_nginx <<EOF
 yum update -y
 yum install epel-release -y
-yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld nginx-mod-modsecurity -y
+yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld nginx-mod-modsecurity proxysql mariadb-server-utils -y
 EOF
 	
 	# Sanity Check jail dan sshd.local apabila nginx dan docker menggunakan server yang sama
