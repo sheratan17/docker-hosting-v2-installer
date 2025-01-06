@@ -452,9 +452,8 @@ file_csr="$ssl_dir/api.csr"
 openssl req -x509 -newkey rsa:4096 -keyout $file_key -out $file_crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname"
 
 # Config awal proxysql
-ssh root@$ip_nginx <<EOF
-systemctl start proxysql
-mysql -u admin -padmin -h 127.0.0.1 -P6032 --prompt 'ProxySQL Admin> '
+proxysql_config="
+mysql -u admin -padmin -h 127.0.0.1 -P6032 --prompt 'ProxySQL Admin> ' <<EOF
 UPDATE global_variables SET variable_value='monitor' WHERE variable_name='mysql-monitor_username';
 UPDATE global_variables SET variable_value='Monitor123' WHERE variable_name='mysql-monitor_password';
 UPDATE global_variables SET variable_value='2000' WHERE variable_name IN ('mysql-monitor_connect_interval','mysql-monitor_ping_interval','mysql-monitor_read_only_interval');
@@ -463,6 +462,10 @@ LOAD MYSQL VARIABLES TO RUNTIME;
 SAVE MYSQL VARIABLES TO DISK;
 LOAD MYSQL SERVERS TO RUNTIME;
 EOF
+"
+
+ssh -p root@$ip_nginx "systemctl start proxysql"
+ssh -p root@$ip_nginx "$proxysql_config"
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.10-jammy
