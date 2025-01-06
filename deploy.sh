@@ -465,7 +465,7 @@ EOF
 "
 
 sudo ssh "root@$ip_nginx" "systemctl start proxysql"
-sudo ssh "root@$ip_nginx" "$proxysql_config"
+sudo ssh "root@$ip_nginx" "$proxysql_config" 2>&1
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.10-jammy
