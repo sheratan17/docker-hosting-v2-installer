@@ -332,6 +332,7 @@ firewall-cmd --zone=public --add-port=3306/tcp --permanent
 firewall-cmd --remove-service=cockpit --permanent
 firewall-cmd --reload
 systemctl enable nginx
+systemctl disable mariadb
 echo "Nginx selesai."
 echo
 EOF
