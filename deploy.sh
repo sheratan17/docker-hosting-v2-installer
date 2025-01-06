@@ -244,7 +244,7 @@ else
 	#sleep 30
 	ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
 	cd /opt
-	git clone git@github.com:sheratan17/docker-hosting-v2.git
+	git clone -b proxysql git@github.com:sheratan17/docker-hosting-v2.git
 fi
 
 # Buat config zabbix, sanity check sudah ada atau belum
