@@ -451,8 +451,8 @@ file_csr="$ssl_dir/api.csr"
 openssl req -x509 -newkey rsa:4096 -keyout $file_key -out $file_crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname"
 
 echo "Download image docker..."
-docker image pull mariadb:10.11.9-jammy
-docker image pull sheratan17/php:8.3.14-apache-im
+docker image pull mariadb:10.11.10-jammy
+docker image pull sheratan17/php:8.3.15-apache-im
 docker image pull wordpress:6.7.1-php8.3
 docker image pull phpmyadmin:5.2.1-apache
 docker image pull filebrowser/filebrowser:s6
