@@ -460,17 +460,19 @@ UPDATE global_variables SET variable_value='monitor' WHERE variable_name='mysql-
 UPDATE global_variables SET variable_value='Monitor123' WHERE variable_name='mysql-monitor_password';
 UPDATE global_variables SET variable_value='2000' WHERE variable_name IN ('mysql-monitor_connect_interval','mysql-monitor_ping_interval','mysql-monitor_read_only_interval');
 SELECT * FROM global_variables WHERE variable_name LIKE 'mysql-monitor_%';
-UPDATE global_variables SET variable_value='0.0.0.0:3306;/tmp/proxysql.sock' WHERE variable_name='mysql-interfaces';
 LOAD MYSQL VARIABLES TO RUNTIME;
 SAVE MYSQL VARIABLES TO DISK;
 LOAD MYSQL SERVERS TO RUNTIME;
+UPDATE global_variables SET variable_value='0.0.0.0:3306;/tmp/proxysql.sock' WHERE variable_name='mysql-interfaces';
+SAVE MYSQL VARIABLES TO DISK
 EOF
 "
 
-sudo ssh "root@$ip_nginx" "systemctl start proxysql"
-sudo ssh "root@$ip_nginx" "systemctl enable proxysql"
+sudo ssh root@$ip_nginx "systemctl start proxysql"
+sudo ssh root@$ip_nginx "systemctl enable proxysql"
 sleep 3
-sudo ssh "root@$ip_nginx" "$proxysql_config"
+sudo ssh root@$ip_nginx "$proxysql_config"
+
 
 
 echo "Download image docker..."
