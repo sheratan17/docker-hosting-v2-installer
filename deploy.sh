@@ -468,6 +468,7 @@ EOF
 "
 
 ssh "root@$ip_nginx" "systemctl start proxysql"
+ssh "root@$ip_nginx" "systemctl enable proxysql"
 sleep 3
 ssh "root@$ip_nginx" "$proxysql_config" > /dev/null 2>&1
 
