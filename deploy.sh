@@ -467,10 +467,11 @@ LOAD MYSQL SERVERS TO RUNTIME;
 EOF
 "
 
-ssh "root@$ip_nginx" "systemctl start proxysql"
-ssh "root@$ip_nginx" "systemctl enable proxysql"
+sudo ssh "root@$ip_nginx" "systemctl start proxysql"
+sudo ssh "root@$ip_nginx" "systemctl enable proxysql"
 sleep 3
-ssh "root@$ip_nginx" "$proxysql_config" > /dev/null 2>&1
+sudo ssh "root@$ip_nginx" "$proxysql_config"
+
 
 echo "Download image docker..."
 docker image pull mariadb:10.11.10-jammy
