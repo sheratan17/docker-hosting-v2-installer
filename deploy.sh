@@ -223,6 +223,8 @@ cat << EOF > /etc/docker/daemon.json
  "no-new-privileges": true,
  "userland-proxy" : false,
  "selinux-enabled": true,
+ "log-driver": "json-file",
+ "log-opts": {"max-size": "20m", "max-file": "3"},
  "icc": false
 }
 EOF
