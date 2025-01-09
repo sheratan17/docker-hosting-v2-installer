@@ -471,7 +471,7 @@ EOF
 sudo ssh root@$ip_nginx "systemctl start proxysql"
 sudo ssh root@$ip_nginx "systemctl enable proxysql"
 sleep 3
-sudo ssh root@$ip_nginx "$proxysql_config"
+sudo ssh root@$ip_nginx "$proxysql_config" 2>/dev/null
 
 
 
