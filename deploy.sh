@@ -478,6 +478,7 @@ sudo ssh root@$ip_nginx "$proxysql_config" 2>/dev/null
 
 
 echo "Download image docker..."
+
 docker image pull mariadb:10.11.10-jammy
 docker image pull sheratan17/php:8.3.15-apache-im
 docker image pull wordpress:6.7.1-php8.3
