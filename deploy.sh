@@ -14,6 +14,7 @@ read -p "Masukkan IP PRIVATE server Node Docker: " ipprivate_node
 read -p "Apakah anda ingin install nginx? nginx dapat di install di server ini atau server lain (y/n): " nginx_option
 echo
 read -p "Masukkan IP PUBLIC server nginx reverse proxy: " ip_nginx
+read -p "Masukkan IP PRIVATE server nginx reverse proxy: " ipprivate_nginx
 read -sp "Masukkan password root server nginx reverse proxy: " pass_nginx
 echo
 read -sp "Masukkan password root server nginx reverse proxy (2x): " pass_nginx2
@@ -222,6 +223,8 @@ cat << EOF > /etc/docker/daemon.json
  "no-new-privileges": true,
  "userland-proxy" : false,
  "selinux-enabled": true,
+ "log-driver": "json-file",
+ "log-opts": {"max-size": "20m", "max-file": "3"},
  "icc": false
 }
 EOF
@@ -244,7 +247,7 @@ else
 	#sleep 30
 	ssh-keyscan -t rsa github.com >> /root/.ssh/known_hosts
 	cd /opt
-	git clone git@github.com:sheratan17/docker-hosting-v2.git
+	git clone -b proxysql git@github.com:sheratan17/docker-hosting-v2.git
 fi
 
 # Buat config zabbix, sanity check sudah ada atau belum
@@ -267,7 +270,7 @@ else
 	echo "Email di config sudah ada"
 fi
 
-# Setting port zabbix-agent di node docker
+# Setting port firewall
 firewall-cmd --zone=public --add-port=10050/tcp --permanent
 firewall-cmd --zone=public --add-port=8000/tcp --permanent
 firewall-cmd --remove-service=cockpit --permanent
@@ -289,7 +292,7 @@ if [ "$nginx_option" == y ]; then
 	ssh root@$ip_nginx <<EOF
 yum update -y
 yum install epel-release -y
-yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld nginx-mod-modsecurity -y
+yum install nginx nano lsof certbot python3-certbot-nginx policycoreutils-python-utils fail2ban fail2ban-firewalld nginx-mod-modsecurity proxysql mariadb-server-utils -y
 EOF
 	
 	# Sanity Check jail dan sshd.local apabila nginx dan docker menggunakan server yang sama
@@ -328,9 +331,11 @@ mkdir -p /etc/ssl/nginx
 openssl req -x509 -newkey rsa:4096 -keyout /etc/ssl/nginx/nginx.key -out /etc/ssl/nginx/nginx.crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=\$server_hostname_nginx"
 firewall-cmd --zone=public --add-service=http --permanent
 firewall-cmd --zone=public --add-service=https --permanent
+firewall-cmd --zone=public --add-port=3306/tcp --permanent
 firewall-cmd --remove-service=cockpit --permanent
 firewall-cmd --reload
 systemctl enable nginx
+systemctl disable mariadb
 echo "Nginx selesai."
 echo
 EOF
@@ -339,6 +344,7 @@ fi
 # ubah bash script agar menggunakan IP nginx
 sed -i "s/_servernginx/$ip_nginx/g" /opt/docker-hosting-v2/script/config.conf
 sed -i "s/_ipprivate_node_/$ipprivate_node/g" /opt/docker-hosting-v2/script/config.conf
+sed -i "s/_privateservernginx/$ipprivate_nginx/g" /opt/docker-hosting-v2/script/config.conf
 
 echo "Menambahkan cronjob backup, checkquota dan sinkron jam..."
 chmod +x /opt/docker-hosting-v2/script/quotacheck.sh
@@ -449,8 +455,31 @@ file_csr="$ssl_dir/api.csr"
 
 openssl req -x509 -newkey rsa:4096 -keyout $file_key -out $file_crt -sha256 -days 3650 -nodes -subj "/C=ID/ST=Jakarta/L=Jakarta/O=Docker Hosting v2/OU=Docker Hosting v2/CN=$server_hostname"
 
+# Config awal proxysql
+proxysql_config="
+mysql -u admin -padmin -h 127.0.0.1 -P6032 --prompt 'ProxySQL Admin> ' <<EOF
+UPDATE global_variables SET variable_value='monitor' WHERE variable_name='mysql-monitor_username';
+UPDATE global_variables SET variable_value='Monitor123' WHERE variable_name='mysql-monitor_password';
+UPDATE global_variables SET variable_value='2000' WHERE variable_name IN ('mysql-monitor_connect_interval','mysql-monitor_ping_interval','mysql-monitor_read_only_interval');
+SELECT * FROM global_variables WHERE variable_name LIKE 'mysql-monitor_%';
+LOAD MYSQL VARIABLES TO RUNTIME;
+SAVE MYSQL VARIABLES TO DISK;
+LOAD MYSQL SERVERS TO RUNTIME;
+UPDATE global_variables SET variable_value='0.0.0.0:3306;/tmp/proxysql.sock' WHERE variable_name='mysql-interfaces';
+SAVE MYSQL VARIABLES TO DISK
+EOF
+"
+
+sudo ssh root@$ip_nginx "systemctl start proxysql"
+sudo ssh root@$ip_nginx "systemctl enable proxysql"
+sleep 3
+sudo ssh root@$ip_nginx "$proxysql_config" 2>/dev/null
+
+
+
 echo "Download image docker..."
-docker image pull mariadb:10.11.9-jammy
+
+docker image pull mariadb:10.11.10-jammy
 docker image pull sheratan17/php:8.3.15-apache-im
 docker image pull wordpress:6.7.1-php8.3
 docker image pull phpmyadmin:5.2.1-apache
